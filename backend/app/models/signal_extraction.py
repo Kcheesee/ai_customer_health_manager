@@ -13,6 +13,8 @@ class SignalExtraction(Base):
     # Keeping specific signal buckets for backward compat / keyword scanner specific
     churn_signals = Column(ARRAY(String))
     positive_signals = Column(ARRAY(String))
+    action_signals = Column(ARRAY(String))
+    compliance_signals = Column(ARRAY(String))
     keyword_severity = Column(String)
     
     # LLM

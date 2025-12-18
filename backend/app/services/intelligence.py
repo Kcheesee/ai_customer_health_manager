@@ -31,16 +31,24 @@ class IntelligenceService:
         self.db.refresh(db_input)
 
         # 2. Keyword Scan
-        matches = scan_text(input_data.content)
+        scan_result = scan_text(input_data.content)
         
         # 3. Determine if LLM Analysis is needed
-        if should_analyze_with_llm(matches):
+        if should_analyze_with_llm(scan_result):
             print(f"Triggering LLM analysis for input {db_input.id}")
             analysis = await self._run_llm_analysis(input_data)
             
             # 4. Save Extraction
             extraction = SignalExtraction(
                 input_id=db_input.id,
+                # Keyword results
+                churn_signals=scan_result.churn_signals,
+                positive_signals=scan_result.positive_signals,
+                action_signals=scan_result.action_signals,
+                compliance_signals=scan_result.compliance_signals,
+                keyword_severity=scan_result.keyword_severity,
+                
+                # LLM results
                 sentiment=analysis.sentiment,
                 summary=analysis.summary,
                 signals=analysis.signals, # SQLAlchemy/Postgres ARRAY

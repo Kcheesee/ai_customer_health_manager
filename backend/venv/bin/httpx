@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/Users/jackalmac/Desktop/Code World/AI Customer Health Manager/backend/venv/bin/python3" "$0" "$@"
+'''exec' "/Users/jackalmac/Desktop/Code World/AI Customer Health Manager/ai_customer_health_manager/backend/venv/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re
