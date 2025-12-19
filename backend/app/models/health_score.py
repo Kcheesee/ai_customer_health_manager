@@ -24,6 +24,12 @@ class HealthScore(Base):
     
     ai_summary = Column(Text)
     
+    # Trend tracking
+    previous_score = Column(Integer, nullable=True)
+    score_change = Column(Integer, nullable=True)  # +5, -12, etc.
+    trend_direction = Column(String, nullable=True)  # up, down, stable
+    triggered_by = Column(String, nullable=True)  # input_added, decay, manual, daily_job
+    
     calculated_at = Column(DateTime, default=datetime.utcnow)
 
     account = relationship("Account", back_populates="health_scores")

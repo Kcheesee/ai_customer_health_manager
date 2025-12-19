@@ -33,6 +33,15 @@ class Contract(Base):
     
     # Contacts
     primary_signer = Column(String)
+    economic_buyer = Column(String)
+    
+    # Federal Compliance - The differentiator
+    fedramp_required = Column(Boolean, default=False)
+    fisma_level = Column(String, default='none')  # none, low, moderate, high
+    hipaa_required = Column(Boolean, default=False)
+    section_508_required = Column(Boolean, default=False)
+    ato_status = Column(String, default='none')  # none, pending, active, expired
+    ato_expiry_date = Column(Date, nullable=True)
     
     # Metadata
     created_at = Column(Date, default=datetime.utcnow)
