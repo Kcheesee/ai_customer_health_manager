@@ -28,3 +28,4 @@ class Account(Base):
     inputs = relationship("Input", back_populates="account", cascade="all, delete-orphan")
     contracts = relationship("Contract", back_populates="account", cascade="all, delete-orphan")
     reminders = relationship("Reminder", back_populates="account", cascade="all, delete-orphan")
+    documents = relationship("AccountDocument", back_populates="account", cascade="all, delete-orphan")

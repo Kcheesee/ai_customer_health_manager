@@ -38,6 +38,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.staticfiles import StaticFiles
+import os
+os.makedirs("app/static", exist_ok=True)
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 app.include_router(users_router, prefix=f"{settings.API_V1_STR}/users", tags=["users"])
 app.include_router(auth_router, prefix=f"{settings.API_V1_STR}/auth", tags=["auth"])
 app.include_router(accounts_router, prefix=f"{settings.API_V1_STR}/accounts", tags=["accounts"])
@@ -48,6 +53,7 @@ app.include_router(dashboard_router, prefix=f"{settings.API_V1_STR}/dashboard", 
 app.include_router(contracts_router, prefix=f"{settings.API_V1_STR}/contracts", tags=["contracts"])
 app.include_router(alerts_router, prefix=f"{settings.API_V1_STR}/alerts", tags=["alerts"]) # Using root prefix for nested routes consistency
 app.include_router(reminders_router, prefix=f"{settings.API_V1_STR}/reminders", tags=["reminders"])
+app.include_router(documents_router, prefix=f"{settings.API_V1_STR}/documents", tags=["documents"])
 
 @app.get("/")
 def read_root():

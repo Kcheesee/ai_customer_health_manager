@@ -1,23 +1,28 @@
+```typescript
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import type { Account } from "@/types/account";
 import type { HealthScore } from "@/types/health";
 import type { Input as InputType } from "@/types/input";
-import type { Contract } from "@/types/contract"; // Add Contract type
+import type { Contract } from "@/types/contract";
+import type { AccountDocument } from "@/types/document"; // Add Document type
 import { accountService } from "@/services/accountService";
 import { healthService } from "@/services/healthService";
 import { inputService } from "@/services/inputService";
-import { contractService } from "@/services/contractService"; // Add contractService
+import { contractService } from "@/services/contractService";
+import { documentService } from "@/services/documentService"; // Add documentService
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { HealthBadge } from "@/components/health/HealthBadge";
-import { ArrowLeft, RefreshCw } from "lucide-react";
+import { ArrowLeft, RefreshCw, Upload, Plus } from "lucide-react";
 import { ReminderList } from "@/components/reminders/ReminderList";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { InputModal } from "@/components/inputs/InputModal";
-import { ContractList } from "@/components/contracts/ContractList"; // Add ContractList
-import { ContractModal } from "@/components/contracts/ContractModal"; // Add ContractModal
+import { ContractList } from "@/components/contracts/ContractList";
+import { ContractModal } from "@/components/contracts/ContractModal";
+import { DocumentList } from "@/components/documents/DocumentList"; // Add DocumentList
+import { DocumentUploadModal } from "@/components/documents/DocumentUploadModal"; // Add DocumentUploadModal
 import { format } from "date-fns";
 
 export default function AccountDetail() {
@@ -27,12 +32,14 @@ export default function AccountDetail() {
     const [healthScore, setHealthScore] = useState<HealthScore | null>(null);
     const [inputs, setInputs] = useState<InputType[]>([]);
     const [contracts, setContracts] = useState<Contract[]>([]);
-    const [children, setChildren] = useState<Account[]>([]); // Add children state
+    const [documents, setDocuments] = useState<AccountDocument[]>([]); // Add documents state
+    const [children, setChildren] = useState<Account[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null); // Add error state
+    const [error, setError] = useState<string | null>(null);
     const [recalculating, setRecalculating] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const [isContractModalOpen, setIsContractModalOpen] = useState(false); // Add modal state
+    const [isContractModalOpen, setIsContractModalOpen] = useState(false);
+    const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false); // Add document modal state
 
     useEffect(() => {
         if (id) {
@@ -44,18 +51,20 @@ export default function AccountDetail() {
         if (!id) return;
         setLoading(true);
         try {
-            const [accData, healthData, inputsData, contractsData, childrenData] = await Promise.all([
+            const [accData, healthData, inputsData, contractsData, childrenData, documentsData] = await Promise.all([
                 accountService.getAccount(id),
                 healthService.getLatestHealth(id),
                 inputService.getInputs(id),
                 contractService.getContracts(id),
-                accountService.getChildren(id) // Fetch children
+                accountService.getChildren(id),
+                documentService.getDocuments(id) // Fetch documents
             ]);
             setAccount(accData);
             setHealthScore(healthData);
             setInputs(inputsData);
             setContracts(contractsData);
-            setChildren(childrenData); // Set children
+            setChildren(childrenData);
+            setDocuments(documentsData); // Set documents
         } catch (error: any) {
             console.error("Failed to fetch account details", error);
             setError(error.message || "An unexpected error occurred while loading account data.");
@@ -178,7 +187,7 @@ export default function AccountDetail() {
                                                 <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">{stat.label}</div>
                                                 <div className="text-xl font-black">{stat.val}%</div>
                                                 <div className="h-1 w-full bg-white/10 rounded-full mt-2 overflow-hidden">
-                                                    <div className="h-full bg-primary" style={{ width: `${stat.val}%` }}></div>
+                                                    <div className="h-full bg-primary" style={{ width: `${ stat.val }% ` }}></div>
                                                 </div>
                                             </div>
                                         ))}
@@ -190,7 +199,7 @@ export default function AccountDetail() {
                                         onClick={handleRecalculate}
                                         disabled={recalculating}
                                     >
-                                        <RefreshCw className={`mr-2 h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
+                                        <RefreshCw className={`mr - 2 h - 4 w - 4 ${ recalculating ? 'animate-spin' : '' } `} />
                                         {recalculating ? "Processing Analytis..." : "Update Intelligence"}
                                     </Button>
                                 </>
@@ -243,12 +252,14 @@ export default function AccountDetail() {
                             <TabsList className="bg-slate-100 p-1 rounded-2xl">
                                 <TabsTrigger value="activity" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold text-sm">Activity</TabsTrigger>
                                 <TabsTrigger value="contracts" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold text-sm">Contracts</TabsTrigger>
+                                <TabsTrigger value="documents" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold text-sm">Documents</TabsTrigger>
                                 {account.account_type === "ela_parent" && (
                                     <TabsTrigger value="offices" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm font-bold text-sm">Offices</TabsTrigger>
                                 )}
                             </TabsList>
 
-                            <TabsContent value="activity" className="m-0">
+                            {/* This TabsContent is for the InputModal, which is an action, not a tab content itself */}
+                            <TabsContent value="activity" className="m-0 flex justify-end">
                                 <InputModal accountId={id!} onSuccess={() => setRefreshTrigger(prev => prev + 1)} />
                             </TabsContent>
                         </div>
@@ -309,7 +320,7 @@ export default function AccountDetail() {
                                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">Enterprise Hierarchy</h3>
                                 <Button
                                     className="rounded-xl font-bold"
-                                    onClick={() => navigate(`/accounts/new?parent_id=${id}`)}
+                                    onClick={() => navigate(`/ accounts / new? parent_id = ${ id } `)}
                                 >
                                     Register New Office
                                 </Button>
@@ -321,7 +332,7 @@ export default function AccountDetail() {
                                     </div>
                                 ) : (
                                     children.map(child => (
-                                        <Card key={child.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-none ring-1 ring-slate-200 bg-white cursor-pointer group" onClick={() => navigate(`/accounts/${child.id}`)}>
+                                        <Card key={child.id} className="hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 border-none ring-1 ring-slate-200 bg-white cursor-pointer group" onClick={() => navigate(`/ accounts / ${ child.id } `)}>
                                             <CardContent className="p-6">
                                                 <div className="flex justify-between items-start">
                                                     <div>

@@ -26,6 +26,10 @@ class ContractBase(BaseModel):
     section_508_required: bool = False
     ato_status: str = "none"  # none, pending, active, expired
     ato_expiry_date: Optional[date] = None
+    
+    # Content
+    full_text: Optional[str] = None
+    document_path: Optional[str] = None
 
 
 class ContractCreate(ContractBase):
@@ -54,6 +58,8 @@ class ContractUpdate(BaseModel):
     section_508_required: Optional[bool] = None
     ato_status: Optional[str] = None
     ato_expiry_date: Optional[date] = None
+    full_text: Optional[str] = None
+    document_path: Optional[str] = None
 
 
 class ContractResponse(ContractBase):

@@ -9,3 +9,4 @@ from app.models.contract import Contract
 from .alert import Alert
 from .reminder import Reminder
 from .llm_config import LLMConfiguration
+from .document import AccountDocument

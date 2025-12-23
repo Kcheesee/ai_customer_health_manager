@@ -32,8 +32,12 @@ export function ContractModal({ accountId, isOpen, onClose, onSuccess }: Contrac
         end_date: "",
         arr: 0,
         term_length: "annual",
-        auto_renewal: true
+        auto_renewal: true,
+        full_text: "",
+        document_path: ""
     });
+
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,8 +45,21 @@ export function ContractModal({ accountId, isOpen, onClose, onSuccess }: Contrac
         setError("");
 
         try {
+            let docPath = formData.document_path;
+
+            // Upload file if selected
+            if (selectedFile) {
+                try {
+                    docPath = await contractService.uploadContractDocument(selectedFile);
+                } catch (uploadErr) {
+                    console.error("Upload failed", uploadErr);
+                    throw new Error("Failed to upload document. Please try again.");
+                }
+            }
+
             await contractService.createContract({
                 ...formData,
+                document_path: docPath,
                 account_id: accountId,
                 arr: Number(formData.arr),
                 // Ensure dates are string YYYY-MM-DD
@@ -90,6 +107,10 @@ export function ContractModal({ accountId, isOpen, onClose, onSuccess }: Contrac
                                     <SelectItem value="saas_subscription">SaaS Subscription</SelectItem>
                                     <SelectItem value="consulting_sow">Consulting SOW</SelectItem>
                                     <SelectItem value="msa">MSA</SelectItem>
+                                    <SelectItem value="work_order">Work Order</SelectItem>
+                                    <SelectItem value="sales_sheet">Sales Sheet</SelectItem>
+                                    <SelectItem value="nda">NDA</SelectItem>
+                                    <SelectItem value="other">Other</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -146,7 +167,32 @@ export function ContractModal({ accountId, isOpen, onClose, onSuccess }: Contrac
                         </div>
                     </div>
 
+                    <div className="space-y-2">
+                        <Label htmlFor="full_text">Full Contract Text / Details</Label>
+                        <textarea
+                            id="full_text"
+                            className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            value={formData.full_text || ""}
+                            onChange={(e) => setFormData({ ...formData, full_text: e.target.value })}
+                            placeholder="Paste contract content, terms, or notes here..."
+                        />
+                    </div>
+
                     {error && <div className="text-red-500 text-sm">{error}</div>}
+
+                    <div className="space-y-2">
+                        <Label htmlFor="file_upload">Attach Document (PDF/Doc)</Label>
+                        <Input
+                            id="file_upload"
+                            type="file"
+                            onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    setSelectedFile(e.target.files[0]);
+                                }
+                            }}
+                            accept=".pdf,.doc,.docx,.txt"
+                        />
+                    </div>
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>

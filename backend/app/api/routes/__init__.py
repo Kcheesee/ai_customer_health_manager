@@ -7,4 +7,6 @@ from .dashboard import router as dashboard_router
 from .contracts import router as contracts_router
 from .alerts import router as alerts_router
 from .reminders import router as reminders_router
+from .reminders import router as reminders_router
 from .llm_settings import router as llm_settings_router
+from .documents import router as documents_router

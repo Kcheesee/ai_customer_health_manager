@@ -1,3 +1,4 @@
+from typing import Optional, Tuple, Union
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from uuid import UUID
@@ -33,7 +34,7 @@ class HealthCalculator:
         self.db = db
         self.assessment_gen = HealthAssessmentGenerator(db)
 
-    def _get_previous_score(self, account_id: UUID) -> tuple[int | None, HealthScore | None]:
+    def _get_previous_score(self, account_id: UUID) -> Tuple[Optional[int], Optional[HealthScore]]:
         """
         Fetch the most recent health score for comparison.
         Returns (previous_score, previous_health_record)
@@ -46,7 +47,7 @@ class HealthCalculator:
             return previous.overall_score, previous
         return None, None
 
-    def _apply_decay(self, account: Account, base_score: int, last_interaction: datetime | None) -> tuple[int, bool]:
+    def _apply_decay(self, account: Account, base_score: int, last_interaction: Optional[datetime]) -> Tuple[int, bool]:
         """
         Apply decay if no communication past check-in interval.
         
@@ -76,7 +77,7 @@ class HealthCalculator:
         
         return adjusted_score, decay_amount > 0
 
-    def _calculate_trend(self, current: int, previous: int | None) -> tuple[int | None, str]:
+    def _calculate_trend(self, current: int, previous: Optional[int]) -> Tuple[Optional[int], str]:
         """
         Calculate score change and trend direction.
         

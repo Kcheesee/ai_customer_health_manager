@@ -14,10 +14,15 @@ export interface Contract {
     primary_signer?: string;
     products_modules: string[];
     created_at: string;
+    ato_status: string; // none, pending, active, expired
+    ato_expiry_date?: string | null;
+
+    // Content
+    full_text?: string;
+    document_path?: string;
 }
 
-export interface ContractCreate {
-    account_id: string;
+export interface ContractCreate extends Omit<Contract, 'id' | 'created_at' | 'updated_at'> {
     contract_name: string;
     contract_type: string;
     status: string;

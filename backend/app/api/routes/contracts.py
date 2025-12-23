@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
-from uuid import UUID
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+import shutil
+import os
+from uuid import UUID, uuid4
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -8,6 +10,26 @@ from app.models.contract import Contract
 from app.schemas.contract import ContractCreate, ContractUpdate, ContractResponse
 
 router = APIRouter()
+
+# Upload directory: backend/app/static/uploads
+UPLOAD_DIR = "app/static/uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+@router.post("/upload/")
+async def upload_contract_document(file: UploadFile = File(...)):
+    try:
+        # Generate safe filename
+        ext = os.path.splitext(file.filename)[1]
+        filename = f"{uuid4()}{ext}"
+        file_path = os.path.join(UPLOAD_DIR, filename)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Return relative path for storage
+        return {"path": file_path, "filename": file.filename}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
 
 @router.get("/", response_model=List[ContractResponse])
 def get_all_contracts(db: Session = Depends(get_db)):
@@ -24,7 +46,7 @@ def get_contracts_for_account(account_id: str, db: Session = Depends(get_db)):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post("/contracts/", response_model=ContractResponse)
+@router.post("/", response_model=ContractResponse)
 def create_contract(contract: ContractCreate, db: Session = Depends(get_db)):
     db_contract = Contract(**contract.model_dump())
     db.add(db_contract)
@@ -32,7 +54,7 @@ def create_contract(contract: ContractCreate, db: Session = Depends(get_db)):
     db.refresh(db_contract)
     return db_contract
 
-@router.put("/contracts/{contract_id}", response_model=ContractResponse)
+@router.put("/{contract_id}", response_model=ContractResponse)
 def update_contract(contract_id: str, contract: ContractUpdate, db: Session = Depends(get_db)):
     db_contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not db_contract:
@@ -46,7 +68,7 @@ def update_contract(contract_id: str, contract: ContractUpdate, db: Session = De
     db.refresh(db_contract)
     return db_contract
 
-@router.delete("/contracts/{contract_id}")
+@router.delete("/{contract_id}")
 def delete_contract(contract_id: str, db: Session = Depends(get_db)):
     db_contract = db.query(Contract).filter(Contract.id == contract_id).first()
     if not db_contract:

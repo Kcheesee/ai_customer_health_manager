@@ -42,6 +42,10 @@ class Contract(Base):
     section_508_required = Column(Boolean, default=False)
     ato_status = Column(String, default='none')  # none, pending, active, expired
     ato_expiry_date = Column(Date, nullable=True)
+
+    # Content
+    full_text = Column(Text, nullable=True)
+    document_path = Column(String, nullable=True)
     
     # Metadata
     created_at = Column(Date, default=datetime.utcnow)

@@ -20,7 +20,7 @@ export const contractService = {
 
     createContract: async (contract: ContractCreate): Promise<Contract> => {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_BASE_URL}/contracts/`, {
+        const response = await fetch(`${API_BASE_URL}/contracts`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -35,6 +35,27 @@ export const contractService = {
         }
 
         return response.json();
+    },
+
+    uploadContractDocument: async (file: File): Promise<string> => {
+        const token = localStorage.getItem('token');
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`${API_BASE_URL}/contracts/upload/`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to upload document');
+        }
+
+        const data = await response.json();
+        return data.path; // Returns server path
     },
 
     getAllContracts: async (): Promise<Contract[]> => {
